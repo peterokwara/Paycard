@@ -119,6 +119,7 @@
       }
     </style>
   </head>
+
   <body>
     <!-- your HTML goes here -->
     <div data-cart-info>
@@ -228,13 +229,68 @@
         });
       };
 
+      const appState = {};
+
+      const formatAsMoney = (amount, buyerCountry) => {
+        let code = "US";
+        let newCurrency = "USD";
+        countries.forEach(item => {
+          if (item.country === buyerCountry) {
+            code = item.code;
+            newCurrency = item.currency;
+          }
+        });
+
+        return amount.toLocaleString("en-" + code, {
+          style: currency,
+          currency: newCurrency,
+          currencyDisplay: "symbol"
+        });
+      };
+
+      const detectCardType = first4Digits => {};
+
+      const validateCardExpiryDate = () => {};
+
+      const validateCardHolderName = () => {};
+
+      const uiCanInteract = () => {};
+
+      const displayCartTotal = ({ results }) => {
+        const [data] = results;
+        const { itemsInCart, buyerCountry } = data;
+
+        appState.items = itemsInCart;
+        appState.country = buyerCountry;
+        appState.bill = itemsInCart.reduce(
+          (accumulator, currentValue) =>
+            accumulator + currentValue.price * currentValue.qty,
+          0
+        );
+        appState.billFormatted = formatAsMoney(appState.bill, appState.country);
+
+        document.querySelector([data - bill]).textContent =
+          appState.billFormatted;
+
+        appState.cardDigits = [];
+
+        uiCanInteract();
+      };
+
       const fetchBill = () => {
         const apiHost = "https://randomapi.com/api";
         const apiKey = "006b08a801d82d0c9824dcfdfdfa3b3c";
         const apiEndpoint = `${apiHost}/${apiKey}`;
+
+        fetch(apiEndpoint)
+          .then(response => response.json())
+          .then(data => displayCartTotal(data))
+          .catch(error => console.log(JSON.stringify(error)));
       };
 
-      const startApp = () => {};
+      const startApp = () => {
+        fetchBill();
+      };
 
       startApp();
     </script>
