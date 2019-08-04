@@ -242,19 +242,85 @@
         });
 
         return amount.toLocaleString("en-" + code, {
-          style: currency,
+          style: "currency",
           currency: newCurrency,
           currencyDisplay: "symbol"
         });
       };
 
+      const flagIfInvalid = (field, isValid) => {
+        isValid === true
+          ? field.classList.remove("is-invalid")
+          : field.classList.add("is-invalid");
+      };
+
+      const expiryDateFormatIsValid = field => {
+        let [month, year] = field.split("/");
+        let isMonth = /^(0?[1-9]|1[012])$/.test(month);
+        let isYear = /\d{2}$/.test(year);
+        if (isMonth === false || isYear === false) {
+          return false;
+        }
+        return true;
+      };
+
       const detectCardType = first4Digits => {};
 
-      const validateCardExpiryDate = () => {};
+      const validateCardExpiryDate = () => {
+        let field = document.querySelector("[data-cc-info]>input:nth-child(2)");
+        let currentDate = new Date();
+        let inputDate = field.value.split("/").map(Number);
+        let inputMonth = inputDate[0] - 1;
+        let inputYear = inputDate[1] + 2000;
+        let formDate = new Date(inputYear, inputMonth);
+        if (expiryDateFormatIsValid(field.value) && formDate >= currentDate) {
+          flagIfInvalid(field, true);
+          return true;
+        } else {
+          flagIfInvalid(field, false);
+          return false;
+        }
+      };
 
-      const validateCardHolderName = () => {};
+      const validateCardHolderName = () => {
+        const field = document.querySelector(
+          "[data-cc-info]>input:nth-child(1)"
+        );
 
-      const uiCanInteract = () => {};
+        let validity = /^[a-zA-Z]{3,} +[a-zA-Z]{3,}$/.test(field.value);
+        console.log(validity);
+        console.log(field.value);
+        flagIfInvalid(field, validity);
+        return validity;
+      };
+
+      const validateCardNumber = () => {};
+
+      const validatePayment = () => {
+        validateCardNumber();
+        validateCardHolderName();
+        validateCardExpiryDate();
+      };
+
+      const acceptCardNumbers = (event, fieldIndex) => {};
+
+      const uiCanInteract = () => {
+        const cardInput = document.querySelector(
+          "[data-cc-digits]>input:nth-child(1)"
+        );
+        // cardInput.addEventListener('blur',detectCardType);
+
+        //   const nameInput = document.querySelector("[data-cc-info]>input:nth-child(1)");
+        //   nameInput.addEventListener('blur',validateCardHolderName);
+
+        //   const dateInput = document.querySelector("[data-cc-info]>input:nth-child(2)");
+        // dateInput.addEventListener('blur',validateCardExpiryDate);
+        cardInput.focus();
+        const button = document.querySelector("[data-pay-btn]");
+        button.addEventListener("click", validatePayment);
+
+        billHype();
+      };
 
       const displayCartTotal = ({ results }) => {
         const [data] = results;
@@ -269,7 +335,7 @@
         );
         appState.billFormatted = formatAsMoney(appState.bill, appState.country);
 
-        document.querySelector([data - bill]).textContent =
+        document.querySelector("[data-bill]").textContent =
           appState.billFormatted;
 
         appState.cardDigits = [];
